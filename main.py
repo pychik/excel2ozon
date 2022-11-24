@@ -160,11 +160,14 @@ def runner():
 
 if __name__ == '__main__':
     exec_hour, exec_min = tuple(settings.TIME_EXECUTE.split(":"))
-
+    if int(exec_hour) == 0 or exec_hour == 23:
+        logger.warning(msg="выберите время запуска с 01 до 22. Обработчик выклается")
+        s_exit()
     # Preare our schedule hour list for sleeping until exec time
     scheduler_list = [i for i in range(24)]
     exec_val_index = scheduler_list.index(int(exec_hour))
-    del scheduler_list[exec_val_index]
+    del scheduler_list[exec_val_index-1]
+    del scheduler_list[exec_val_index-1]
     del scheduler_list[exec_val_index-1]
 
     while True:
@@ -176,7 +179,7 @@ if __name__ == '__main__':
             runner()
             logger.info(msg=f"Обработчик запустится через сутки - а пока баиньки")
             sleep(7200)
-        if time_pc_hour in scheduler_list:
+        if int(time_pc_hour) in scheduler_list:
             logger.info(msg=f"{time_pc} время для запуска еще не настало")
             sleep(3600)
         else:
