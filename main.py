@@ -159,31 +159,24 @@ def runner():
 
 
 if __name__ == '__main__':
-    exec_hour, exec_min = tuple(settings.TIME_EXECUTE.split(":"))
-    if int(exec_hour) == 0 or exec_hour == 23:
-        logger.warning(msg="выберите время запуска с 01 до 22. Обработчик выклается")
-        s_exit()
-    # Preare our schedule hour list for sleeping until exec time
-    scheduler_list = [i for i in range(24)]
-    exec_val_index = scheduler_list.index(int(exec_hour))
-    del scheduler_list[exec_val_index-1]
-    del scheduler_list[exec_val_index-1]
-    del scheduler_list[exec_val_index-1]
+    logger.info("Обработчик данных: основной цикл запущен")
+    exec_hour_list = eval(settings.TIME_EXECUTE)
+    logger.info(msg=f"Выбранные часы запуска : {str(exec_hour_list)[1:-1]}\n")
 
     while True:
         time_pc = datetime.now()
-        time_pc_hour, time_pc_min = time_pc.strftime("%H"), time_pc.strftime("%M")
+        time_pc_hour = time_pc.strftime("%H")
 
-        if time_pc_hour == exec_hour:
-            logger.info(msg=f"{time_pc} - запускаю обработчик")
+        if int(time_pc_hour) in exec_hour_list:
+            logger.info(msg=f"Обработчик данных: {time_pc.strftime('%H:%M:%S')} - запускаю обработку")
             runner()
-            logger.info(msg=f"Обработчик запустится через сутки - а пока баиньки")
-            sleep(7200)
-        if int(time_pc_hour) in scheduler_list:
-            logger.info(msg=f"{time_pc} время для запуска еще не настало")
+            logger.info(msg=f"Обработчик запустится согласно установленного графика: {str(exec_hour_list)[1:-1]}"
+                            f"- а пока баиньки")
             sleep(3600)
+
         else:
-            logger.info(msg=f"{time_pc} скоро запустится обработчик")
+            logger.info(msg=f"{time_pc} Время запуска еще не подошло\n"
+                            f"Установленный график: {str(exec_hour_list)[1:-1]}\n")
             sleep(60)
 
 
