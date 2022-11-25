@@ -142,7 +142,43 @@ class OzonApi:
                 yield list_dicts[ndx:min(ndx + n, len_list)]
 
 
-def runner():
+def time_list_checker() -> list:
+    logger.info("Обработчик данных: основной цикл запущен")
+    time_list_string = settings.TIME_EXECUTE
+    
+    if time_list_string[0] != '[' or time_list_string[-1] != ']':
+        logger.warning(msg=f"Некорректно заполен массив графика запуска.\n"
+                           f"Укажите правильно. Например [1,]\n")
+        s_exit()
+
+    exec_hour_notchecked = eval(time_list_string)
+       
+    if len(exec_hour_notchecked) == 0:
+        logger.warning(msg=f"В массиве графика запуска пропишите хотя бы один час.\n"
+                           f"Например [1,]\n")
+        s_exit()
+    if len(exec_hour_notchecked) == 0:
+        logger.warning(msg=f"В массиве графика запуска пропишите хотя бы один час.\n"
+                           f"Например [1,]\n")
+        s_exit()
+    
+    exec_hour_list = [abs(e) for e in exec_hour_notchecked]
+    
+    if max(exec_hour_list) >23:
+        logger.warning(msg=f"В массиве графика запуска ошибка заполнения. Введен {max(exec_hour_list)} \n"
+                           f"Пропишите часы из диапазона 0-23\n")
+        s_exit()
+    
+    for i in range(1,len(exec_hour_list)):
+        if exec_hour_list[i] == exec_hour_list[i-1] + 1:
+            logger.warning(msg=f"В указанном массиве графиков запуска обработки есть последовательные величины {exec_hour_list[i-1]}, {exec_hour_list[i]}.\n"
+                               f"Установите с разностью хотя бы 2 часа. Например 1,3,5,7\n")
+            s_exit()
+    logger.info(msg=f"Выбранные часы запуска : {str(exec_hour_list)[1:-1]}\n")
+    return exec_hour_list
+        
+    
+def runner() -> None:
     start = time()
     gt = TableGetter(login_url=settings.LOGIN_URL, price_url=settings.PRICE_URL)
     table_resp = gt.register_download()
@@ -159,9 +195,7 @@ def runner():
 
 
 if __name__ == '__main__':
-    logger.info("Обработчик данных: основной цикл запущен")
-    exec_hour_list = eval(settings.TIME_EXECUTE)
-    logger.info(msg=f"Выбранные часы запуска : {str(exec_hour_list)[1:-1]}\n")
+    exec_hour_list = time_list_checker()
 
     while True:
         time_pc = datetime.now()
