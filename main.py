@@ -158,43 +158,7 @@ class OzonApi:
             yield list_dicts[ndx:min(ndx + n, len_list)]
 
 
-def time_list_checker() -> list:
-    logger.info("Обработчик данных: основной цикл запущен")
-    time_list_string = settings.TIME_EXECUTE
-    
-    if time_list_string[0] != '[' or time_list_string[-1] != ']':
-        logger.warning(msg=f"Некорректно заполен массив графика запуска.\n"
-                           f"Укажите правильно. Например [1,]\n")
-        s_exit()
-
-    exec_hour_notchecked = eval(time_list_string)
-       
-    if len(exec_hour_notchecked) == 0:
-        logger.warning(msg=f"В массиве графика запуска пропишите хотя бы один час.\n"
-                           f"Например [1,]\n")
-        s_exit()
-    if len(exec_hour_notchecked) == 0:
-        logger.warning(msg=f"В массиве графика запуска пропишите хотя бы один час.\n"
-                           f"Например [1,]\n")
-        s_exit()
-    
-    exec_hour_list = [abs(e) for e in exec_hour_notchecked]
-    
-    if max(exec_hour_list) >23:
-        logger.warning(msg=f"В массиве графика запуска ошибка заполнения. Введен {max(exec_hour_list)} \n"
-                           f"Пропишите часы из диапазона 0-23\n")
-        s_exit()
-    
-    for i in range(1,len(exec_hour_list)):
-        if exec_hour_list[i] == exec_hour_list[i-1] + 1:
-            logger.warning(msg=f"В указанном массиве графиков запуска обработки есть последовательные величины {exec_hour_list[i-1]}, {exec_hour_list[i]}.\n"
-                               f"Установите с разностью хотя бы 2 часа. Например 1,3,5,7\n")
-            s_exit()
-    logger.info(msg=f"Выбранные часы запуска : {str(exec_hour_list)[1:-1]}\n")
-    return exec_hour_list
-        
-    
-def runner() -> None:
+def runner():
     start = time()
     tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
     product_list = tg.get_stock()
@@ -210,24 +174,30 @@ def runner() -> None:
     logger.info(msg=f"Обновление {len_list} позиций по остаткам склада выполнено за {delta}")
 
 
-if __name__ == '__main__':
-    exec_hour_list = time_list_checker()
-
-    while True:
-        time_pc = datetime.now()
-        time_pc_hour = time_pc.strftime("%H")
-
-        if int(time_pc_hour) in exec_hour_list:
-            logger.info(msg=f"Обработчик данных: {time_pc.strftime('%H:%M:%S')} - запускаю обработку")
-            runner()
-            logger.info(msg=f"Обработчик запустится согласно установленного графика: {str(exec_hour_list)[1:-1]}"
-                            f"- а пока баиньки")
-            sleep(3600)
-
-        else:
-            logger.info(msg=f"{time_pc} Время запуска еще не подошло\n"
-                            f"Установленный график: {str(exec_hour_list)[1:-1]}\n")
-            sleep(60)
+# if __name__ == '__main__':
+    # exec_hour, exec_min = tuple(settings.TIME_EXECUTE.split(":"))
+    #
+    # # Preare our schedule hour list for sleeping until exec time
+    # scheduler_list = [i for i in range(24)]
+    # exec_val_index = scheduler_list.index(int(exec_hour))
+    # del scheduler_list[exec_val_index]
+    # del scheduler_list[exec_val_index-1]
+    #
+    # while True:
+    #     time_pc = datetime.now()
+    #     time_pc_hour, time_pc_min = time_pc.strftime("%H"), time_pc.strftime("%M")
+    #
+    #     if time_pc_hour == exec_hour:
+    #         logger.info(msg=f"{time_pc} - запускаю обработчик")
+    #         runner()
+    #         logger.info(msg=f"Обработчик запустится через сутки - а пока баиньки")
+    #         sleep(7200)
+    #     if time_pc_hour in scheduler_list:
+    #         logger.info(msg=f"{time_pc} время для запуска еще не настало")
+    #         sleep(3600)
+    #     else:
+    #         logger.info(msg=f"{time_pc} скоро запустится обработчик")
+    #         sleep(60)
 
 # if __name__ == '__main__':
 #     tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
@@ -250,3 +220,11 @@ if __name__ == '__main__':
 #     # print(*stock_list, sep='\n')
 #     batches2send, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_invask)
 #     oa.update_stock(list_send=batches2send, len_list=len_list)
+
+if __name__ == '__main__':
+    while True:
+        time_pc = datetime.now()
+        logger.info(msg=f"{time_pc} - запускаю обработчик")
+        runner()
+        logger.info(msg=f"Обработчик запустится через час - а пока баиньки")
+        sleep(3600)
