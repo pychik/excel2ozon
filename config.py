@@ -2,9 +2,8 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    USER_LOGIN: str
-    USER_PASSWORD: str
-    LOGIN_URL: str
+    INVASK_API_TOKEN: str
+    INVASK_API_URL: str
     OZON_API_KEY: str
     OZON_MAX_ITEMS: int
     OZON_MIN_ITEMS: str
@@ -17,7 +16,6 @@ class Settings(BaseSettings):
     TABLE_NAME: str = "table.xlsx"
     TIME_EXECUTE: str
     LEN_TOKEN: int = 40
-
 
     class Config:
         env_file = '.env'
