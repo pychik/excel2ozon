@@ -12,56 +12,72 @@ logger.basicConfig(level=logger.INFO, format="%(asctime)s %(levelname)s %(messag
 
 
 class TableGetter:
-    def __init__(self, login_url: str, price_url: str) -> None:
-        self.login_url = login_url
-        self.price_url = price_url
+    def __init__(self, api_token: str) -> None:
+        self.api_token = api_token
+        self.last_id = ''
 
-    def register_download(self) -> requests.models.Response:
+    def table_requester(self, offset: int = None):
         with requests.Session() as s:
-            g_resp = s.get(url=self.login_url)
-            search_string = g_resp.text
-
-            # Searching CSRF token
-            start_phrase = '<input type="hidden" name="_token" value="'
-            start = search_string.find(start_phrase) + len(start_phrase)
-            token = search_string[start:start + settings.LEN_TOKEN]
-
-            payload = {
-                '_token': token,
-                'email': settings.USER_LOGIN,
-                'password': settings.USER_PASSWORD,
-                'remember': 0,
-            }
-            p = s.post(url=self.login_url, data=payload)
-            if p.status_code != 200:
-                logger.warning(msg="Не удалось авторизоваться, проверьте правильность вводимых данных")
+            headers= {"Authorization": f"Bearer {self.api_token}",
+                      }
+            payload= dict(offset=offset) if offset else None
+            response = s.get(url=settings.INVASK_API_URL, headers=headers, params=payload)
+            if not response.status_code == 200:
+                logger.warning(msg=f"Во время загрузки данных с {settings.INVASK_API_URL} произошла ошибка\n"
+                                   f"Ответ сервера: {response.status_code} \n {response.text}")
                 s_exit()
-            logger.info(msg=f"Успешная авторизация на сайте {settings.LOGIN_URL} с токеном {token}")
+            res_dict = response.json()
+            return  res_dict.get("total"), res_dict.get("products")
 
-            table_response = s.get(url=settings.TABLE_URL)
-            if table_response.status_code != 200:
-                logger.warning(msg="Таблицу не удалось скачать. Обратитесь к разработчику!")
+
+    def get_stock(self) -> list:
+        total, pr_list = self.table_requester()
+        while total > len(pr_list):
+            total, pr_batch_list = self.table_requester(offset=len(pr_list))
+            pr_list += pr_batch_list
+
+        return pr_list
+
+    def register_download(self) -> list:
+        with requests.Session() as s:
+            headers = {'Client-Id': self.client_id,
+                       'Api-Key': self.api_key}
+            payload = dict(last_id=self.last_id) if self.last_id else dict()
+            response = s.post(url=settings.OZON_STOCK_URL, headers=headers, json=payload)
+            res_dict = response.json()
+            print(res_dict)
+            last_id = res_dict.get("result").get("last_id")
+            print(last_id)
+            if last_id == '':
+                self.last_id = last_id
+                return []
+            self.last_id = last_id
+            batch_list = res_dict.get("result").get('items')
+            if not batch_list:
+                logger.warning(msg=f"Во время выгрузки данных товаров на озон произошла ошибка {res_dict}")
                 s_exit()
-            logger.info(msg="Таблица скачана в буфер обмена и готова к обработке")
-            return table_response
+            return batch_list
 
     @staticmethod
-    def process_table(table) -> pd.core.frame.DataFrame:
-        with BytesIO(table.content) as fh:
-            df = pd.io.excel.read_excel(fh, sheet_name=0,).loc[13:]
+    def process_table(product_list: list) -> pd.core.frame.DataFrame:
+        string_list = list(
+            filter(lambda x: isinstance(x.get("quantityLabel"), str) and x.get("quantityLabel").startswith(">"),
+                   product_list))
+        num_list = list(filter(lambda x: isinstance(x.get("quantityLabel"), int), product_list))
 
-            # remove all rows with blank article
-            df = df[df.iloc[:, 0] != ''].dropna()
+        conv_string_list = list(
+            map(lambda x: {"cat_number": str(x.get("cat_number")), "quantityLabel": str(int(x.get("quantityLabel")[1:]) + 1)},
+                string_list))
+        conv_num_list = list(
+            map(lambda x: {"cat_number": str(x.get("cat_number")), "quantityLabel": str(x.get("quantityLabel"))}, num_list))
 
-            # select columns with article and quantity
-            df = df.iloc[:, [0, 8]]
-            df = df.replace("> 10", settings.OZON_MAX_ITEMS).replace(eval(settings.OZON_MIN_ITEMS), 0)
-            df.rename(columns={df.columns[0]: 'offer_id', df.columns[1]: 'stock_val'}, inplace=True)
-
-            items_quantity = len(df.index)
-            logger.info(msg=f"Таблица обработана, содержит {items_quantity} записей")
-
-            return df
+        super_list = conv_string_list + conv_num_list
+        df_invask = pd.DataFrame(super_list)
+        df_invask = df_invask.replace(eval(settings.OZON_MIN_ITEMS), 0)
+        # df_invask = df_invask.replace(">10", settings.OZON_MAX_ITEMS).replace(eval(settings.OZON_MIN_ITEMS), 0)
+        df_invask.rename(columns={df_invask.columns[0]: 'offer_id', df_invask.columns[1]: 'stock_val'}, inplace=True)
+        # df_invask = df_invask.iloc[:, :]
+        return df_invask
 
 
 class OzonApi:
@@ -104,9 +120,9 @@ class OzonApi:
 
         stock_quants = []
         for index, row in df_stock[["product_id", "offer_id"]].iterrows():
+
             key_oid = row["offer_id"]
             key_pid = row["product_id"]
-
             # get stock value from supplier table
             stock_value = tuple(df_site[df_site['offer_id'] == key_oid]['stock_val'])
             if len(stock_value) == 0:
@@ -137,20 +153,20 @@ class OzonApi:
 
     @staticmethod
     def list_batcher(list_dicts: list, n: int = 100):
-            len_list = len(list_dicts)
-            for ndx in range(0, len_list, n):
-                yield list_dicts[ndx:min(ndx + n, len_list)]
+        len_list = len(list_dicts)
+        for ndx in range(0, len_list, n):
+            yield list_dicts[ndx:min(ndx + n, len_list)]
 
 
 def runner():
     start = time()
-    gt = TableGetter(login_url=settings.LOGIN_URL, price_url=settings.PRICE_URL)
-    table_resp = gt.register_download()
-    df_orig = gt.process_table(table=table_resp)
+    tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
+    product_list = tg.get_stock()
+    df_invask = tg.process_table(product_list=product_list)
 
     oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY)
     stock_list = oa.get_stock_items()
-    batches2send, len_list = oa.process_stock_items(stock_list, df_site=df_orig)
+    batches2send, len_list = oa.process_stock_items(stock_list, df_site=df_invask)
     oa.update_stock(list_send=batches2send, len_list=len_list)
 
     finish = time()
@@ -183,6 +199,24 @@ if __name__ == '__main__':
             logger.info(msg=f"{time_pc} скоро запустится обработчик")
             sleep(60)
 
-
-
-
+# if __name__ == '__main__':
+#     tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
+#     product_list = tg.get_stock()
+#     string_list = list(filter(lambda x: isinstance(x.get("quantityLabel"), str) and x.get("quantityLabel").startswith(">"), product_list))
+#     num_list = list(filter(lambda x: isinstance(x.get("quantityLabel"), int), product_list))
+#
+#     conv_string_list = list(map(lambda x: {"cat_number":str(x.get("cat_number")), "quantityLabel":str(int(x.get("quantityLabel")[1:])+1)}, string_list))
+#     conv_num_list = list(map(lambda x: {"cat_number":str(x.get("cat_number")), "quantityLabel":str(x.get("quantityLabel"))}, num_list))
+#
+#     super_list = conv_string_list + conv_num_list
+#
+#     # print(*super_list, sep='\n')
+#     df_invask = pd.DataFrame(super_list)
+#     df_invask = df_invask.replace(eval(settings.OZON_MIN_ITEMS), 0)
+#     df_invask.rename(columns={df_invask.columns[0]: 'offer_id', df_invask.columns[1]: 'stock_val'}, inplace=True)
+#     # df_invask = df_invask.iloc[,:]
+#     oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY)
+#     stock_list = oa.get_stock_items()
+#     # print(*stock_list, sep='\n')
+#     batches2send, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_invask)
+#     oa.update_stock(list_send=batches2send, len_list=len_list)
