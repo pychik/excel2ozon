@@ -100,18 +100,21 @@ class OzonApi:
             payload = dict(last_id=self.last_id) if self.last_id else dict()
             response = s.post(url=settings.OZON_STOCK_URL, headers=headers, json=payload)
             res_dict = response.json()
-
-            last_id = res_dict.get("result").get("last_id")
-            print(last_id)
-            if last_id == '':
-                self.last_id = last_id
-                return []
-            self.last_id = last_id
-            batch_list = res_dict.get("result").get('items')
-            if not batch_list:
+            result = res_dict.get("result")
+            if not result:
                 logger.warning(msg=f"Во время выгрузки данных товаров на озон произошла ошибка {res_dict}")
                 s_exit()
-            return batch_list
+            else:
+                last_id = result.get("last_id")
+                if last_id == '':
+                    self.last_id = last_id
+                    return []
+                self.last_id = last_id
+                batch_list = res_dict.get("result").get('items')
+                if not batch_list:
+                    logger.warning(msg=f"Во время выгрузки данных товаров на озон произошла ошибка {res_dict}")
+                    s_exit()
+                return batch_list
 
     def process_stock_items(self, stock_list: list, df_site: pd.core.frame.DataFrame) -> tuple:
         df_stock_raw = pd.DataFrame(stock_list)
