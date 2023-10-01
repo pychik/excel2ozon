@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = '.env'
+    # pyinstaller --onefile --exclude-module python-dotenv  main.py
 
 
 settings = Settings()

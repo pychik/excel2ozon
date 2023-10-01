@@ -85,6 +85,7 @@ class TableGetter:
 
     @staticmethod
     def process_table(product_list: list) -> pd.core.frame.DataFrame:
+
         string_list = list(
             filter(lambda x: isinstance(x.get("quantityLabel"), str) and x.get("quantityLabel").startswith(">"),
                    product_list))
@@ -217,7 +218,7 @@ class OzonApi:
             return batch_list, len(result_list_dicts)
         else:
             # print(stock_quants[:10])
-            batch_list = self.list_batcher(list_dicts=stock_quants[:10], n=1000)
+            batch_list = self.list_batcher(list_dicts=stock_quants, n=1000)
             logger.info(msg=f"Завершено сопоставление таблицы артикулов и таблицы поставщика.\n"
                         f"Обработано {len(stock_quants)} записей для цен")
             return batch_list, len(stock_quants)
@@ -226,13 +227,14 @@ class OzonApi:
         with requests.Session() as s:
             headers = {'Client-Id': self.client_id,
                        'Api-Key': self.api_key}
+            if not price_flag:
+                for el in list_send:
 
-            for el in list_send:
-                if not price_flag:
                     payload = dict(stocks=el)
                     response = s.post(url=settings.OZON_STOCK_UPDATE_URL, headers=headers, json=payload)
                     logger.info(msg=f"Пачка данных кол-ва товаров обработана:{response.json()}")
-                else:
+            else:
+                for el in list_send:
                     payload = dict(prices=el)
                     response = s.post(url=settings.OZON_PRICE_UPDATE_URL, headers=headers, json=payload)
                     logger.info(msg=f"Пачка данных цен обработана:{response.json()}")
@@ -357,7 +359,6 @@ def main_proc():
 
             case '4':
                 s_exit()
-
 
 
 if __name__ == '__main__':

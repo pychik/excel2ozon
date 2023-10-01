@@ -1,7 +1,11 @@
+import logging as logger
 from openpyxl import load_workbook
+from sys import exit as s_exit
+from time import sleep
 from config import settings
-# Define variable to load the dataframe
 
+
+logger.basicConfig(level=logger.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
 class PriceReader:
@@ -14,8 +18,13 @@ class PriceReader:
         self.filename = filename
 
     def get_prices_dict(self) -> dict:
-        dataframe = load_workbook(filename=self.filename).active
-
+        try:
+            dataframe = load_workbook(filename=self.filename).active
+        except:
+            logger.warning(msg=f"В папке должен находиться файл с настройками для цен {settings.TABLE_NAME}."
+                               f"Отключаюсь")
+            sleep(4)
+            s_exit()
         # Define variable to read sheet
         # dataframe1 = dataframe.active
 
