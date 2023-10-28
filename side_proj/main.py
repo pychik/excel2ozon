@@ -6,7 +6,7 @@ from sys import exit as s_exit
 from time import sleep, time
 from typing import Generator
 
-from side_proj.config import settings
+from config import settings
 logger.basicConfig(level=logger.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 

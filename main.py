@@ -19,8 +19,7 @@ class TableGetter:
 
     def table_requester(self, offset: int = None):
         with requests.Session() as s:
-            headers = {"Authorization": f"Bearer {self.api_token}",
-                      }
+            headers = {"Authorization": f"Bearer {self.api_token}"}
             payload = dict(offset=offset) if offset else None
             response = s.get(url=settings.INVASK_API_URL, headers=headers, params=payload)
             if not response.status_code == 200:
