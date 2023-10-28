@@ -9,8 +9,8 @@ logger.basicConfig(level=logger.INFO, format="%(asctime)s %(levelname)s %(messag
 
 
 class PriceReader:
-    def __init__(self, filename: str = settings.Prices.TABLEFILE, start_rows: int = settings.Prices.START_ROW,
-                 article_col: str = settings.Prices.AC, prices_delta_col: str = settings.Prices.PC):
+    def __init__(self, filename: str = settings.PRICE_TABLE, start_rows: int = settings.START_ROW,
+                 article_col: str = settings.ARTICLE_COLUMN, prices_delta_col: str = settings.PRICE_COLUMN):
 
         self.ac = article_col
         self.pc = prices_delta_col
