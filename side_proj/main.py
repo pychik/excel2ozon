@@ -153,8 +153,8 @@ def main_proc():
         time_pc = datetime.now()
         logger.info(msg=f"{time_pc} - запускаю обработчик")
         runner_stock()
-        logger.info(msg=f"Обработчик запустится через час - а пока баиньки")
-        sleep(3600)
+        logger.info(msg=f"Обработчик запустится через {settings.UPDATE_PERIOD} сек - а пока баиньки")
+        sleep(settings.UPDATE_PERIOD)
 
 
 if __name__ == '__main__':

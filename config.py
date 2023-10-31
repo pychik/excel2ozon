@@ -23,12 +23,11 @@ class Settings(BaseSettings):
     UPLOAD_TEMPLATE_YM: str = 'upload_template'
     UPLOAD_NAME_YM: str = 'yandex_upload.xlsx'
     UPLOAD_YM_TABLE_WORKSHEET: str = 'Остатки'
-    UPDATE_PERIOD: int = 3600
+    UPDATE_PERIOD: int
     PRICE_TABLE: str
     ARTICLE_COLUMN: str
     PRICE_COLUMN: str
     START_ROW: int
-
 
     class Messages:
         START_MESSAGE: str = "Начат процесс обновления таблицы остатков склада!"
