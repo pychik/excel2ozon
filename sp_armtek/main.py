@@ -103,7 +103,6 @@ class OzonApi:
                     f"Обработано {len(result_list_dicts)} записей для кол-ва товаров")
         return batch_list, len(result_list_dicts)
 
-
     def update_stock(self, list_send: Generator, len_list: int, price_flag: bool = False):
         with Session() as s:
             headers = {'Client-Id': self.client_id,
@@ -162,11 +161,9 @@ if __name__ == '__main__':
     # res_list = TableGetter.table_requester()
     # print(res_list)
 
-
-
     oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY, prices_delta_dict={})
     stock_list = oa.get_stock_items()
-    print(list(map(lambda x: x.get('offer_id'),stock_list)), len(stock_list))
+    print(list(map(lambda x: x.get('offer_id'), stock_list)), len(stock_list))
 
     #
     # with Session() as s:

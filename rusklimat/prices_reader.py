@@ -47,7 +47,7 @@ class PriceReader:
             return str(int(price*((100+price_delta)/100) + settings.Prices.DELIVERY))
 
 
-if __name__ == '__main__':
-    pr = PriceReader()
-    prices_dict = pr.get_prices_dict()
-    print(PriceReader.price_process(price=100, price_delta=prices_dict.get('452001')))
+# if __name__ == '__main__':
+    # pr = PriceReader()
+    # prices_dict = pr.get_prices_dict()
+    # print(PriceReader.price_process(price=100, price_delta=prices_dict.get('НС-0028148')))
