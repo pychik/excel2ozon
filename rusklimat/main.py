@@ -84,7 +84,7 @@ class TableGetter:
             s_exit()
         else:
             processed_res = list(map(lambda x: [x["nsCode"],
-                                                x['remains']['total'] if x['remains']['total'] != 'ожидается поставка' \
+                                                x['remains']['warehouses'].get('фрц Киржач', 0) if x['remains']['total'] != 'ожидается поставка' \
                                                     else 0, str(int(x["internetPrice"]))] if x["internetPrice"] is not None else None,
                                      res_dict['data']))
 
@@ -363,6 +363,7 @@ def main_proc():
 
 if __name__ == '__main__':
     main_proc()
+
     # oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY, prices_delta_dict={})
     # stock_list = oa.get_stock_items()
     # print(list(map(lambda x: x.get('offer_id'), stock_list)), len(stock_list))
@@ -370,7 +371,8 @@ if __name__ == '__main__':
     # jwt = TableGetter.jwt_requester()
     # print(jwt)
     # table_list =TableGetter.table_requester(jwt=jwt)
-    # print(*table_list, sep='\n')
+    # print(table_list)
+    # search_pos= list(filter(lambda x: x[1] != '0', table_list))
     # df = TableGetter.process_table(product_list=table_list)
     # print(df)
     # pr = PriceReader()
