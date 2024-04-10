@@ -26,7 +26,6 @@ class TableGetter:
             s_exit()
 
 
-
 class WB:
     def __init__(self, api_key: str) -> None:
         self.api_key = api_key
@@ -155,10 +154,8 @@ def runner_stock():
 
     df_wb = TableGetter.table_from_excel()
     stock_list = wb.get_stock_items().get_skus().sku_list
-    print(len(stock_list))
-    print('stock_list')
+
     batches2send, len_list = wb.process_stock_items(stock_list=stock_list, df_site=df_wb)
-    print('start_update')
     wb.update_stock(list_send=batches2send, len_list=len_list)
 
     finish = time()
