@@ -103,12 +103,11 @@ class WB:
         df_stock = pd.DataFrame(stock_list, columns=['sku'])
 
         df_stock_quants = pd.DataFrame(columns=['sku', 'amount'])
-
         stock_quants = []
         for index, row in df_stock[["sku"]].iterrows():
 
             key_sku = row["sku"]
-            stock_value = tuple(df_site[df_site['sku'] == int(key_sku)]['amount'])
+            stock_value = tuple(df_site[df_site['sku'] == str(key_sku)]['amount'])
 
             if len(stock_value) == 0:
                 continue
