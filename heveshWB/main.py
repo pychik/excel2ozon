@@ -57,7 +57,7 @@ class WB:
                        }
             # payload = dict(last_id=self.last_id) if self.last_id else dict()
             from json import dumps
-            payload = {"sort": {
+            payload = {"settings": {
                             "cursor": {
                               "limit": 1000,
                               "updatedAt": self.updated_at,
@@ -67,7 +67,7 @@ class WB:
                               "withPhoto": -1,
                             }
                       }
-                    } if self.last_id else {"sort": {
+                    } if self.last_id else {"settings": {
                             "cursor": {
                               "limit": 1000
                             },
@@ -78,12 +78,13 @@ class WB:
                     }
 
             response = s.post(url=settings.WB_STOCK_URL, headers=headers, json=payload)
+
             res_dict = response.json()
 
-            result = res_dict.get("data")
+            result = res_dict
 
             if not result:
-                logger.warning(msg=f"Во время выгрузки данных товаров на вайлдберис произошла ошибка {res_dict}")
+                logger.warning(msg=f"Во время выгрузки данных товаров на вайлдберис произошла ошибка ")
                 sleep(5)
                 s_exit()
             else:
@@ -91,7 +92,7 @@ class WB:
                 self.updated_at = result.get("cursor",).get('nmID')
                 self.total = result.get("cursor",).get('total')
 
-                batch_list = res_dict.get("data").get('cards')
+                batch_list = res_dict.get('cards')
                 if not batch_list:
                     logger.warning(msg=f"Во время выгрузки данных товаров на вайлдберис произошла ошибка {res_dict}")
                     sleep(5)
@@ -154,8 +155,10 @@ def runner_stock():
 
     df_wb = TableGetter.table_from_excel()
     stock_list = wb.get_stock_items().get_skus().sku_list
-
+    print(len(stock_list))
+    print('stock_list')
     batches2send, len_list = wb.process_stock_items(stock_list=stock_list, df_site=df_wb)
+    print('start_update')
     wb.update_stock(list_send=batches2send, len_list=len_list)
 
     finish = time()
