@@ -192,9 +192,12 @@ class OzonApi:
                                          stock=stock_value[0],
                                          warehouse_id=settings.OZON_WAREHOUSE_ID))
             else:
+
                 price_value = tuple(df_site[df_site['offer_id'] == key_oid]['regular_price'])
 
+
                 prices_tuple = self.prices_dd.get(key_oid)
+
                 if len(price_value) == 0 or prices_tuple is None or len(prices_tuple) != 2:
                     continue
 
@@ -364,13 +367,15 @@ if __name__ == '__main__':
 
     # pr = PriceReader()
     # prices_dd = pr.get_prices_dict()
+    # print(prices_dd)
     # tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
     # product_list = tg.get_stock()
-    # print(product_list)
+    # # print(product_list)
     # df_invask = tg.process_table(product_list=product_list)
     # # print(df_invask)
     # oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY, prices_delta_dict=prices_dd)
     # stock_list = oa.get_stock_items()
+    #
     #
     # batches2send_p, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_invask, price_flag=True)
     # for el in batches2send_p:

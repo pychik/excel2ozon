@@ -34,7 +34,7 @@ class PriceReader:
         # print(dataframe["B1"].value, dataframe["D1"].value)
         prices_dict = {}
         for row in range(self.start_rows, dataframe.max_row+1):
-            prices_dict[dataframe[f"{self.ac}{row}"].value] = (round(float(dataframe[f"{self.pc}{row}"].value), 4), round(float(dataframe[f"{self.dc}{row}"].value), 4))
+            prices_dict[str(dataframe[f"{self.ac}{row}"].value)] = (round(float(dataframe[f"{self.pc}{row}"].value), 4), round(float(dataframe[f"{self.dc}{row}"].value), 4))
             # for col in f"{self.ac}{self.pc}":
             #     print(dataframe[f"{col}{row}"].value)
         # print(prices_dict['442511'])
