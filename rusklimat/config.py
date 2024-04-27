@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     PRICE_TABLE: str
     ARTICLE_COLUMN: str
     PRICE_COLUMN: str
+    DELIVERY_COLUMN: str
     START_ROW: int
 
     class Prices:

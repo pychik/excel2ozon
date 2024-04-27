@@ -194,13 +194,14 @@ class OzonApi:
             else:
                 price_value = tuple(df_site[df_site['offer_id'] == key_oid]['regular_price'])
 
-                price_delta = self.prices_dd.get(key_oid)
-                if len(price_value) == 0 or price_delta is None:
-                    # print(price_value, price_delta)
+                prices_tuple = self.prices_dd.get(key_oid)
+                if len(price_value) == 0 or prices_tuple is None or len(prices_tuple) != 2:
                     continue
+
+
                 # if key_oid == '451873':
                 #     print(price_value, price_delta)
-                updated_value = PriceReader.price_process(price=int(price_value[0]), price_delta=price_delta)
+                updated_value = PriceReader.price_process(price=int(price_value[0]), prices_tuple=prices_tuple)
                 stock_quants.append(dict(offer_id=key_oid,
                                          product_id=key_pid,
                                          old_price="0",
@@ -360,42 +361,17 @@ def main_proc():
 
 if __name__ == '__main__':
     main_proc()
-    # while True:
-    #     time_pc = datetime.now()
-    #     logger.info(msg=f"{time_pc} - запускаю обработчик")
-    #     runner(prices_dict=prices_dict)
-    #     logger.info(msg=f"Обработчик запустится через час - а пока баиньки")
-    #     sleep(3600)
 
-
-
-
-# if __name__ == '__main__':
-    # sl = SimaLandApi(phone=settings.SIMA_PHONE, password=settings.SIMA_PASS)
-
-
-# if __name__ == '__main__':
-#     tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
-#     product_list = tg.get_stock()
-#     tg.save_excel(product_list=product_list)
-    # pr_product_list = list(map(lambda x: x.update))
-
-    # print(product_list[0].get("attributes"), type(product_list[0].get("attributes")))
-    # string_list = list(filter(lambda x: isinstance(x.get("quantityLabel"), str) and x.get("quantityLabel").startswith(">"), product_list))
-    # num_list = list(filter(lambda x: isinstance(x.get("quantityLabel"), int), product_list))
-
-    # conv_string_list = list(map(lambda x: {"cat_number":str(x.get("cat_number")), "quantityLabel":str(int(x.get("quantityLabel")[1:])+1)}, string_list))
-    # conv_num_list = list(map(lambda x: {"cat_number":str(x.get("cat_number")), "quantityLabel":str(x.get("quantityLabel"))}, num_list))
-
-#     super_list = conv_string_list + conv_num_list
-#
-#     # print(*super_list, sep='\n')
-#     df_invask = pd.DataFrame(super_list)
-#     df_invask = df_invask.replace(eval(settings.OZON_MIN_ITEMS), 0)
-#     df_invask.rename(columns={df_invask.columns[0]: 'offer_id', df_invask.columns[1]: 'stock_val'}, inplace=True)
-#     # df_invask = df_invask.iloc[,:]
-#     oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY)
-#     stock_list = oa.get_stock_items()
-#     # print(*stock_list, sep='\n')
-#     batches2send, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_invask)
-#     oa.update_stock(list_send=batches2send, len_list=len_list)
+    # pr = PriceReader()
+    # prices_dd = pr.get_prices_dict()
+    # tg = TableGetter(api_token=settings.INVASK_API_TOKEN)
+    # product_list = tg.get_stock()
+    # print(product_list)
+    # df_invask = tg.process_table(product_list=product_list)
+    # # print(df_invask)
+    # oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY, prices_delta_dict=prices_dd)
+    # stock_list = oa.get_stock_items()
+    #
+    # batches2send_p, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_invask, price_flag=True)
+    # for el in batches2send_p:
+    #     print(el)

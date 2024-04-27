@@ -202,12 +202,12 @@ class OzonApi:
             else:
                 price_value = tuple(df_site[df_site['offer_id'] == key_oid]['regular_price'])
 
-                price_delta = self.prices_dd.get(key_oid)
-                if len(price_value) == 0 or price_delta is None:
+                prices_tuple = self.prices_dd.get(key_oid)
+                if len(price_value) == 0 or prices_tuple is None or len(prices_tuple) != 2:
                     continue
                 # if key_oid == '451873':
                 #     print(price_value, price_delta)
-                updated_value = PriceReader.price_process(price=int(price_value[0]), price_delta=price_delta)
+                updated_value = PriceReader.price_process(price=int(price_value[0]), prices_tuple=prices_tuple)
                 stock_quants.append(dict(offer_id=key_oid,
                                          product_id=key_pid,
                                          old_price="0",
@@ -377,5 +377,19 @@ if __name__ == '__main__':
     # print(df)
     # pr = PriceReader()
     # prices_dd = pr.get_prices_dict()
-
+    #
+    #
+    # jwt = TableGetter.jwt_requester()
+    # table_list = TableGetter.table_requester(jwt=jwt)
+    #
+    # df_rusklimat = TableGetter.process_table(product_list=table_list)
+    # print(df_rusklimat[df_rusklimat.eq("НС-1349308").any(axis=1)])
+    # oa = OzonApi(client_id=settings.OZON_CLIENT_ID, api_key=settings.OZON_API_KEY, prices_delta_dict=prices_dd)
+    # stock_list = oa.get_stock_items()
+    #
+    # batches2send_p, len_list = oa.process_stock_items(stock_list=stock_list, df_site=df_rusklimat, price_flag=True)
+    #
+    # print(len_list)
+    # for el in batches2send_p:
+    #     print(el)
 
