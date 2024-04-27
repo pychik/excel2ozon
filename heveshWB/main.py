@@ -58,7 +58,7 @@ class WB:
             from json import dumps
             payload = {"settings": {
                             "cursor": {
-                              "limit": 1000,
+                              "limit": 100,
                               "updatedAt": self.updated_at,
                               "nmID": self.last_id
                             },
@@ -68,7 +68,7 @@ class WB:
                       }
                     } if self.last_id else {"settings": {
                             "cursor": {
-                              "limit": 1000
+                              "limit": 100
                             },
                             "filter": {
                               "withPhoto": -1,
