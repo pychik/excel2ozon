@@ -36,7 +36,7 @@ class WB:
         self.sku_list = []
 
     def get_stock_items(self):
-        while self.total >= 1000:
+        while self.total >= 100:
             self.res_list += self.get_stock_items_batch()
         logger.info(msg="Данные с вайлдберис склада получены")
         return self
@@ -88,7 +88,7 @@ class WB:
                 s_exit()
             else:
                 self.last_id = result.get("cursor",).get('nmID')
-                self.updated_at = result.get("cursor",).get('nmID')
+                self.updated_at = result.get("cursor",).get('updatedAt')
                 self.total = result.get("cursor",).get('total')
 
                 batch_list = res_dict.get('cards')
@@ -153,7 +153,7 @@ def runner_stock():
 
     df_wb = TableGetter.table_from_excel()
     stock_list = wb.get_stock_items().get_skus().sku_list
-
+    # print(stock_list, len(stock_list))
     batches2send, len_list = wb.process_stock_items(stock_list=stock_list, df_site=df_wb)
     wb.update_stock(list_send=batches2send, len_list=len_list)
 
