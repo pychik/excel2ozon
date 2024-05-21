@@ -16,9 +16,11 @@ class TableGetter:
     def table_from_excel() -> pd.core.frame.DataFrame:
         try:
             df_supplies = pd.read_excel(settings.EXCEL_FILE, sheet_name=settings.EXCEL_SHEET_NAME, usecols=f'{settings.EXCEL_OFFER_ID_COL}, {settings.EXCEL_QUANTITY_COL}')
+
             df_supplies.drop(df_supplies.index[0])
             headers = ['sku', "amount", ]
             df_supplies.columns = headers
+            df_supplies[['sku']] = df_supplies[['sku']].astype(str)
             return df_supplies
         except Exception as e:
             logger.warning(msg=f"Во время загрузки таблицы произошла ошибка {e}")
@@ -107,10 +109,12 @@ class WB:
         for index, row in df_stock[["sku"]].iterrows():
 
             key_sku = row["sku"]
+
             stock_value = tuple(df_site[df_site['sku'] == str(key_sku)]['amount'])
 
             if len(stock_value) == 0:
                 continue
+
             stock_quants.append(dict(sku=key_sku,
                                      amount=stock_value[0],
                                      ))
@@ -142,6 +146,7 @@ class WB:
 
                 response = s.put(url=url, headers=headers,
                                  json=payload)
+
                 logger.info(msg=f"Пачка данных кол-ва товаров обработана,\nОтвет сервера:{response.status_code}\n"
                                 f"Сообщение от сервера: {response.text}")
 
